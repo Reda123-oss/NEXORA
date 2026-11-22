@@ -10,7 +10,7 @@ class Positional_encoding(nn.Module):
         self.embeddings = nn.Embedding(context_length , d_model)
 
     def forward(self , x):
-        B , T = x.shape
+        B , T = x.shape[ :2]
         positions = torch.arange(0 , T , device = x.device).unsqueeze(0).expand(B , T)
         return self.embeddings(positions)
 
