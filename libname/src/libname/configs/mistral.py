@@ -1,12 +1,12 @@
 from dataclasses import dataclass
-from llama import LlamaConfig , ConfigError
+from .llama import LlamaConfig , ConfigError
 from typing import Optional
 
 
 
 @dataclass(kw_only=True)
 class MistralConfig(LlamaConfig):
-    model_type = "mistral"
+    model_type : str = "mistral"
     sliding_window : int = 4096
     prefill_chunk_size : int = None
 

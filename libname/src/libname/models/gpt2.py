@@ -7,34 +7,74 @@ from ..layers.positional import Positional_encoding
 from ..layers.embedding import Embedding
 
 
+
 class GPT2(nn.Module):
-    def __init__(self , config):
+    def __init__(self, config):
         super().__init__()
-        self.d_model = config.d_model 
-        self.embedding = Embedding(config.vocab_size , config.d_model)
-        self.positional_encoding = Positional_encoding(config.context_length , config.d_model)
+
+        self.d_model = config.d_model
+
+        self.embedding = Embedding(
+            config.vocab_size,
+            config.d_model
+        )
+
+        self.positional_encoding = Positional_encoding(
+            config.context_length,
+            config.d_model
+        )
+
         self.norm = LayerNorm(config.d_model)
-        self.layers = nn.ModuleList([TransformerBlock(config) for _ in range(config.n_layers)])
-        self.lm_head = nn.Linear(config.d_model , config.vocab_size)
 
+        self.layers = nn.ModuleList([
+            TransformerBlock(config)
+            for _ in range(config.n_layers)
+        ])
 
-    def forward(self, input_ids = None , input_embeds = None):
-        assert input_ids.shape == 2
-        assert input_embeds.shape == 3
-        
-        if (input_ids == None) == (input_embeds == None):
-            raise ValueError("You must provide one input exactly")
-        elif len(input_embeds.shape == 3) and input_embeds.shape[-1] != self.d_model:
-            raise ValueError(f"Shapes are mismatched d_model is {self.d_model} and x.shape[3] is {input_embeds.shape[3]}")
-        else:
-            if self.embedding is None:
-                raise ValueError("Token Embedding is disabled")
+        self.lm_head = nn.Linear(
+            config.d_model,
+            config.vocab_size
+        )
+
+    def forward(self, input_ids=None, input_embeds=None):
+
+        if (input_ids is None) == (input_embeds is None):
+            raise ValueError("Provide exactly one input.")
+
+        if input_ids is not None:
+
+            if input_ids.ndim != 2:
+                raise ValueError("input_ids must have shape [B,T].")
+
             embed = self.embedding(input_ids)
 
+        else:
+
+            if input_embeds.ndim != 3:
+                raise ValueError("input_embeds must have shape [B,T,D].")
+
+            if input_embeds.shape[-1] != self.d_model:
+                raise ValueError(
+                    f"Expected embedding dimension {self.d_model}, "
+                    f"got {input_embeds.shape[-1]}."
+                )
+
+            embed = input_embeds
+
+        B, T, D = embed.shape
+
+        # if T > self.positional_encoding.embeddings.num_embeddings:
+        #     raise ValueError("Sequence exceeds context length.")
+
         positions = self.positional_encoding(embed)
+
         x = embed + positions
+
         for layer in self.layers:
             x = layer(x)
-        norm = self.norm(x)
-        logits = self.lm_head(norm)
+
+        x = self.norm(x)
+
+        logits = self.lm_head(x)
+
         return logits

@@ -2,9 +2,9 @@
 import torch
 import torch.nn as nn
 
-from attention import Attention
-from norms import RMSNorm, LayerNorm
-from feedforward import GPT2MLP, SWIGLU
+from .attention import Attention
+from .norms import RMSNorm, LayerNorm
+from .feedforward import GPT2MLP, SWIGLU
 
 
 class TransformerBlock(nn.Module):
@@ -25,7 +25,7 @@ class TransformerBlock(nn.Module):
             self.norm2 = RMSNorm(config.d_model)
 
             # Feed-forward
-            self.ffn = SWIGLU(config.d_model,config.ffn_hidden_dim)
+            self.ffn = SWIGLU(config.d_model,config.ffn_dim)
 
         else:
             # GPT-2

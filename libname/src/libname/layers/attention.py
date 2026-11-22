@@ -3,7 +3,7 @@ import torch
 import torch.nn.functional as F
 from typing import Optional
 import math
-from positional import rope   # must be: rope(x, start_pos=0), x of shape (B, T, H, D)
+from .positional import rope   # must be: rope(x, start_pos=0), x of shape (B, T, H, D)
 
 
 def repeat_kv(x , n_rep):

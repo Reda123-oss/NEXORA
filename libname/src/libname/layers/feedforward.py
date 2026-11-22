@@ -9,7 +9,7 @@ class GPT2MLP(nn.Module):
         super().__init__()
         self.mlp = nn.Sequential(
             nn.Linear(d_model , 4*d_model),
-            nn.GELU(d_model),
+            nn.GELU(),
             nn.Linear(4*d_model , d_model)
         )
 
@@ -17,7 +17,7 @@ class GPT2MLP(nn.Module):
         return self.mlp(x)
 
 
-class SWILGLU(nn.Module):
+class SWIGLU(nn.Module):
     def __init__(self, d_model, ff_n):
         super().__init__()
         self.gate_proj = nn.Linear(d_model, ff_n, bias=False)
