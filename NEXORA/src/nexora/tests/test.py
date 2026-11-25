@@ -1,10 +1,10 @@
 
-from .llama import Llama
-from .mistral import Mistral
+from ..models.llama import Llama
+from ..models.mistral import Mistral
 import torch
 from ..configs.gpt2 import GPT2Config
 from ..configs.llama import LlamaConfig
-from .gpt2 import GPT2
+from ..models.gpt2 import GPT2
 from ..configs.mistral import MistralConfig
 
 
@@ -18,15 +18,7 @@ config = GPT2Config(
 )
 
 
-import torch
 
-print("PyTorch version:", torch.__version__)
-print("CUDA available:", torch.cuda.is_available())
-
-if torch.cuda.is_available():
-    print("GPU:", torch.cuda.get_device_name(0))
-    print("Number of GPUs:", torch.cuda.device_count())
-    print("CUDA version used by PyTorch:", torch.version.cuda)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -52,6 +44,7 @@ config_2 = LlamaConfig(
 
 llama = Llama(config_2)
 
+# This produces a tensor that models expect a 3D tensor each []
 x = torch.randint(0,99 , [70 , 16])
 
 logits = llama(x)

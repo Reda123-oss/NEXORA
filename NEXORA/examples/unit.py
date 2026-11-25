@@ -5,9 +5,9 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
 from transformers import AutoTokenizer
 
-from ..configs.gpt2 import GPT2Config
-from ..models.gpt2 import GPT2
-from ..training.trainer import Trainer
+from nexora.configs.gpt2 import GPT2Config
+from nexora.models.gpt2 import GPT2
+from nexora.training.trainer import Trainer
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

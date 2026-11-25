@@ -16,45 +16,69 @@ class Positional_encoding(nn.Module):
 
 
 
-def compute_thetas(seq_len: int, head_dim: int, theta: float = 10000.0, device=None):
+def compute_thetas(
+    seq_len: int,
+    head_dim: int,
+    theta: float = 10000.0,
+    device=None,
+    start_pos: int = 0
+):
     assert head_dim % 2 == 0
 
-    numerators = torch.arange(0, head_dim, 2, dtype=torch.float32,device=device)
+    # Calculate inverse frequencies
+    numerators = torch.arange(
+        0, head_dim, 2,
+        dtype=torch.float32,
+        device=device
+    )
 
     thetas = 1.0 / (theta ** (numerators / head_dim))
 
-    positions = torch.arange(seq_len, dtype=torch.float32, device=device)
+    # Generate absolute token positions
+    positions = torch.arange(
+        start_pos,
+        start_pos + seq_len,
+        dtype=torch.float32,
+        device=device
+    )
 
+    # Calculate position-frequency products
     frequencies = torch.outer(positions, thetas)
 
-    freqs_complex = torch.polar(torch.ones_like(frequencies), frequencies)
+    # Convert angles into complex rotations
+    freqs_complex = torch.polar(
+        torch.ones_like(frequencies),
+        frequencies
+    )
 
     return freqs_complex
 
 
-def rope(x: torch.Tensor, theta: float = 10000.0):
-    # Expected input: [B, H, T, D]
+def rope(x: torch.Tensor, start_pos: int = 0, theta: float = 10000.0):
 
+    # Expected input: [B, H, T, D]
     B, H, T, D = x.shape
 
     assert D % 2 == 0
 
-    # Convert pairs of real dimensions into complex numbers
-    x_complex = torch.view_as_complex(x.float().reshape(B, H, T, D // 2, 2))
+    x_complex = torch.view_as_complex(
+        x.float().reshape(B, H, T, D // 2, 2)
+    )
 
-    # Compute rotation frequencies
-    freqs_complex = compute_thetas(seq_len=T,head_dim=D,theta=theta,device=x.device)
+    freqs_complex = compute_thetas(
+        seq_len=T,
+        head_dim=D,
+        theta=theta,
+        device=x.device,
+        start_pos=start_pos
+    )
 
-    # Shape: [1, 1, T, D//2]
     freqs_complex = freqs_complex.unsqueeze(0).unsqueeze(0)
 
-    # Apply rotations
     rotated = x_complex * freqs_complex
 
-    # Convert complex numbers back to real numbers
     rotated = torch.view_as_real(rotated)
 
-    # Restore original shape
     return rotated.reshape(B, H, T, D).to(x.dtype)
 
 
