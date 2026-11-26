@@ -554,7 +554,7 @@ pip install -e .
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/nexora-mark-dark.svg">
-  <img src="assets/nexora-mark.svg" alt="NEXORA mark" width="56">
+  <img src="NEXORA/assets/nexora-mark.svg" alt="NEXORA mark" width="56">
 </picture>
 
 *If NEXORA saves you from rewriting one more attention block, it did its job.*
