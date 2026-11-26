@@ -2,7 +2,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/nexora-wordmark-dark.svg">
-  <img src="NEXORA/assets/nexora-wordmark.svg" alt="NEXORA" width="420">
+  <img src="assets/nexora-wordmark.svg" alt="NEXORA" width="420">
 </picture>
 
 ### Define it. Train it. Understand it.
