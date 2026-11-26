@@ -1,7 +1,7 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/nexora-wordmark-dark.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/nexora-wordmark.svg">
   <img src="assets/nexora-wordmark.svg" alt="NEXORA" width="420">
 </picture>
 
