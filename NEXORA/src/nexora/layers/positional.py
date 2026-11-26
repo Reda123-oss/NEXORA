@@ -56,13 +56,14 @@ def compute_thetas(
 
 def rope(x: torch.Tensor, start_pos: int = 0, theta: float = 10000.0):
 
-    # Expected input: [B, H, T, D]
-    B, H, T, D = x.shape
+    # Expected input: [B, T, H, D]
+    # (the layout produced by view() right after the Q/K projections)
+    B, T, H, D = x.shape
 
     assert D % 2 == 0
 
     x_complex = torch.view_as_complex(
-        x.float().reshape(B, H, T, D // 2, 2)
+        x.float().reshape(B, T, H, D // 2, 2)
     )
 
     freqs_complex = compute_thetas(
@@ -73,16 +74,12 @@ def rope(x: torch.Tensor, start_pos: int = 0, theta: float = 10000.0):
         start_pos=start_pos
     )
 
-    freqs_complex = freqs_complex.unsqueeze(0).unsqueeze(0)
+    # [T, D/2] -> [1, T, 1, D/2]: positions run along the time axis,
+    # and every head receives the same rotation for a given position
+    freqs_complex = freqs_complex.unsqueeze(0).unsqueeze(2)
 
     rotated = x_complex * freqs_complex
 
     rotated = torch.view_as_real(rotated)
 
-    return rotated.reshape(B, H, T, D).to(x.dtype)
-
-
-
-
-
-    
+    return rotated.reshape(B, T, H, D).to(x.dtype)

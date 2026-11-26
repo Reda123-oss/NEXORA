@@ -8,13 +8,17 @@ from transformers import AutoTokenizer
 from nexora.configs.gpt2 import GPT2Config
 from nexora.models.gpt2 import GPT2
 from nexora.training.trainer import Trainer
+from nexora.configs.llama import LlamaConfig
+from nexora.models.llama import Llama
+from nexora.models.mistral import Mistral
+from nexora.configs.mistral import MistralConfig
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # 1. Load and clean data
 df = pd.read_csv(
-    r"C:\Users\lenovo\OneDrive\Bureau\LLM_Library\validation.csv"
+    #Put here the path to you file a random .csv file that has text 
 )
 
 df = df.dropna(subset=["text"])
@@ -58,24 +62,82 @@ train_loader = DataLoader(
 )
 
 # 5. Model
-config = GPT2Config(
+# config = GPT2Config(
+#     vocab_size=len(tokenizer),
+#     context_length=128,
+#     d_model=32,
+#     n_layers=2,
+#     n_heads=4,
+#     dropout=0.1
+# )
+
+# gpt = GPT2(config)
+
+# 6. Optimizer and loss
+# optimizer = torch.optim.AdamW(llama.parameters(), lr=1e-4)
+# criterion = nn.CrossEntropyLoss()
+
+# 7. Trainer
+# training = Trainer(
+#     model=gpt,
+#     num_epochs=10,
+#     optimizer=optimizer,
+#     loss=criterion,
+#     checkpoint=True,
+#     best_checkpoint=False,
+#     device=device
+# )
+
+# 8. Start training
+# training.fit(train_loader)
+
+# config_2 = LlamaConfig(
+#     vocab_size=len(tokenizer),
+#     context_length=128,
+#     d_model=32,
+#     n_layers=2,
+#     n_heads=4,
+#     dropout=0.1,
+#     n_kv_heads = 2
+# )
+
+# llama = Llama(config_2)
+
+# optimizer = torch.optim.AdamW(llama.parameters(), lr=1e-4)
+# criterion = nn.CrossEntropyLoss()
+
+# training = Trainer(
+#     model=llama,
+#     num_epochs=10,
+#     optimizer=optimizer,
+#     loss=criterion,
+#     checkpoint=True,
+#     best_checkpoint=False,
+#     device=device
+# )
+
+# training.fit(train_loader)
+
+
+config_3 = MistralConfig(
     vocab_size=len(tokenizer),
     context_length=128,
     d_model=32,
     n_layers=2,
     n_heads=4,
-    dropout=0.1
+    dropout=0.1,
+    n_kv_heads = 2,
+    sliding_window  = 4
+
 )
 
-gpt = GPT2(config)
+mistral = Mistral(config_3)
 
-# 6. Optimizer and loss
-optimizer = torch.optim.AdamW(gpt.parameters(), lr=1e-4)
+optimizer = torch.optim.AdamW(mistral.parameters(), lr=1e-4)
 criterion = nn.CrossEntropyLoss()
 
-# 7. Trainer
 training = Trainer(
-    model=gpt,
+    model=mistral,
     num_epochs=10,
     optimizer=optimizer,
     loss=criterion,
@@ -84,5 +146,4 @@ training = Trainer(
     device=device
 )
 
-# 8. Start training
 training.fit(train_loader)

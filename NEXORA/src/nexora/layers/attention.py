@@ -24,20 +24,9 @@ def repeat_kv(x, n_rep):
 
     x = x[:, :, None, :, :]
 
-    x = x.expand(
-        B,
-        n_kv_heads,
-        n_rep,
-        T,
-        head_dim
-    )
+    x = x.expand(B,n_kv_heads, n_rep,T,head_dim )
 
-    return x.reshape(
-        B,
-        n_kv_heads * n_rep,
-        T,
-        head_dim
-    )
+    return x.reshape(B, n_kv_heads * n_rep, T,head_dim)
 
 
 def create_attention_mask(
@@ -85,11 +74,7 @@ class Attention(nn.Module):
         self.bias = config.bias
 
         # Number of KV heads
-        self.n_kv_heads = getattr(
-            config,
-            "n_kv_heads",
-            None
-        )
+        self.n_kv_heads = getattr(config,"n_kv_heads",None)
 
         if self.n_kv_heads is None:
             self.n_kv_heads = self.n_heads
@@ -103,16 +88,10 @@ class Attention(nn.Module):
         self.n_rep = self.n_heads // self.n_kv_heads
 
         # RoPE configuration
-        self.use_rope = (
-            getattr(config, "rope_theta", None) is not None
-        )
+        self.use_rope = (getattr(config, "rope_theta", None) is not None)
 
         # Sliding-window configuration
-        self.window_size = getattr(
-            config,
-            "sliding_window",
-            None
-        )
+        self.window_size = getattr(config,"sliding_window", None)
 
         # Projections
         self.Wq = nn.Linear(
@@ -139,12 +118,7 @@ class Attention(nn.Module):
             bias=self.bias
         )
 
-    def forward(
-        self,
-        x,
-        cache=None,
-        start_pos=None
-    ):
+    def forward(self,x,cache=None,start_pos=None):
         """
         x: [B, T, d_model]
 
@@ -166,47 +140,25 @@ class Attention(nn.Module):
                 else 0
             )
 
-        # -----------------------------------------
-        # 1. Q, K, V projections
-        # -----------------------------------------
 
         Q = self.Wq(x)
         K = self.Wk(x)
         V = self.Wv(x)
 
-        # [B, T, heads, head_dim]
-        Q = Q.view(
-            B, T, self.n_heads, self.head_dim
-        )
+        Q = Q.view(B, T, self.n_heads, self.head_dim)
 
-        K = K.view(
-            B, T, self.n_kv_heads, self.head_dim
-        )
+        K = K.view(B, T, self.n_kv_heads, self.head_dim)
 
-        V = V.view(
-            B, T, self.n_kv_heads, self.head_dim
-        )
-
-        # -----------------------------------------
-        # 2. Apply RoPE
-        # -----------------------------------------
+        V = V.view(B, T, self.n_kv_heads, self.head_dim)
 
         if self.use_rope:
             Q = rope(Q, start_pos=start_pos)
             K = rope(K, start_pos=start_pos)
 
-        # -----------------------------------------
-        # 3. Change layout
-        # -----------------------------------------
-
-        # [B, heads, T, head_dim]
+        
         Q = Q.transpose(1, 2)
         K = K.transpose(1, 2)
         V = V.transpose(1, 2)
-
-        # -----------------------------------------
-        # 4. Cache management
-        # -----------------------------------------
 
         if cache is not None:
 
@@ -226,33 +178,17 @@ class Attention(nn.Module):
                 device=x.device
             )
 
-        # -----------------------------------------
-        # 5. GQA: repeat K and V
-        # -----------------------------------------
 
         K = repeat_kv(K, self.n_rep)
         V = repeat_kv(V, self.n_rep)
 
-        # -----------------------------------------
-        # 6. Attention scores
-        # -----------------------------------------
 
-        attn = torch.matmul(
-            Q,
-            K.transpose(-1, -2)
-        )
+        attn = torch.matmul(Q,K.transpose(-1, -2))
 
         attn = attn / math.sqrt(self.head_dim)
 
-        # -----------------------------------------
-        # 7. Causal / sliding-window mask
-        # -----------------------------------------
 
-        query_positions = torch.arange(
-            start_pos,
-            start_pos + T,
-            device=x.device
-        )
+        query_positions = torch.arange(start_pos,start_pos + T,device=x.device)
 
         mask = create_attention_mask(
             query_positions=query_positions,
@@ -267,21 +203,10 @@ class Attention(nn.Module):
             float("-inf")
         )
 
-        # -----------------------------------------
-        # 8. Softmax and dropout
-        # -----------------------------------------
 
         attn = F.softmax(attn, dim=-1)
 
-        attn = F.dropout(
-            attn,
-            p=self.dropout,
-            training=self.training
-        )
-
-        # -----------------------------------------
-        # 9. Weighted sum of values
-        # -----------------------------------------
+        attn = F.dropout(attn,p=self.dropout,training=self.training)
 
         out = torch.matmul(attn, V)
 
@@ -291,14 +216,8 @@ class Attention(nn.Module):
 
         out = out.transpose(1, 2).contiguous()
 
-        # Concatenate heads
-        out = out.view(
-            B,
-            T,
-            self.n_heads * self.head_dim
-        )
+        out = out.view(B, T,self.n_heads * self.head_dim)
 
-        # Output projection
         out = self.Wo(out)
 
         return out
