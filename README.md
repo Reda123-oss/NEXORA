@@ -15,6 +15,7 @@ GPT-2 · LLaMA · Mistral — and Mixtral on the way.
 ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)
 ![Status](https://img.shields.io/badge/status-alpha_0.1.0-orange?style=flat-square)
+![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
 
 </div>
 
@@ -553,7 +554,7 @@ pip install -e .
 <div align="center">
 
 
-  <img src="NEXORA/assets/nexora-mark.svg" alt="NEXORA" width="56">
+  <img src="NEXORA/assets/nexora-mark.svg" alt="NEXORA" width="75">
 
 
 *If NEXORA saves you from rewriting one more attention block, it did its job.*
